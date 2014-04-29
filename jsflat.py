@@ -34,6 +34,35 @@ from pprint import pprint
 
 __author__  = 'Laurence Gonsalves <laurence@xenomachina.com>'
 
+def append_key(prefix, key):
+    # TODO use subscript notaiton for unsafe keys
+    if prefix:
+        return prefix + '.' + key
+    else:
+        return key
+
+def append_index(prefix, index):
+    return prefix + '[' + repr(index) + ']'
+
+def append_value(prefix, value):
+    if prefix:
+        return prefix + ' = ' + value
+    else:
+        return value
+
+def flatten(js, file, prefix=''):
+    if isinstance(js, dict):
+        for key, value in sorted(js.items()):
+            flatten(value, file, append_key(prefix, key))
+    elif isinstance(js, list):
+        for index, value in enumerate(js):
+            flatten(value, file, append_index(prefix, index))
+    elif isinstance(js, str) or isinstance(js, int):
+        file.write(append_value(prefix, repr(js)))
+        file.write('\n')
+    else:
+        assert False, "Don't know what to do with a %r!" % type(js)
+
 class UserError(Exception):
   def __init__(self, message):
     self.message = message
@@ -52,8 +81,7 @@ def main(args):
             js = json.load(f)
     else:
         js = json.load(sys.stdin)
-    # TODO: actually flatten
-    pprint(js)
+    flatten(js, file=sys.stdout)
 
 if __name__ == '__main__':
     error = None
