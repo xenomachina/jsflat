@@ -36,7 +36,6 @@ turns into:
 
 import argparse
 import json
-import os
 import re
 import sys
 
@@ -82,13 +81,14 @@ class UserError(Exception):
   def __init__(self, message):
     self.message = message
 
-def ParseArgs():
-    parser = argparse.ArgumentParser(description=__doc__.strip().split('\n')[0])
+def create_parser():
+    description, epilog = __doc__.strip().split('\n', 1)
+    parser = argparse.ArgumentParser(description=description, epilog=epilog,
+            formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('input',
             help="Input file name. If not provided, input is read from stdin.",
             nargs='?')
-    args = parser.parse_args()
-    return args
+    return parser
 
 def main(args):
     if args.input is not None:
@@ -100,14 +100,14 @@ def main(args):
 
 if __name__ == '__main__':
     error = None
+    parser = create_parser()
     try:
-        main(ParseArgs())
+        main(parser.parse_args())
     except FileExistsError as exc:
         error = '%s: %r' % (exc.strerror, exc.filename)
     except UserError as exc:
         error = exc.message
 
     if error is not None:
-        program_name = os.path.basename(sys.argv[0], error)
-        print(('%s: error: %s' % program_name), file=sys.stderr)
+        print(('%s: error: %s' % (parser.prog, error)), file=sys.stderr)
         sys.exit(1)
