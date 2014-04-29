@@ -42,7 +42,7 @@ def append_key(prefix, key):
         return key
 
 def append_index(prefix, index):
-    return prefix + '[' + repr(index) + ']'
+    return prefix + '[' + json.dumps(index) + ']'
 
 def append_value(prefix, value):
     if prefix:
@@ -58,7 +58,7 @@ def flatten(js, file, prefix=''):
         for index, value in enumerate(js):
             flatten(value, file, append_index(prefix, index))
     elif isinstance(js, str) or isinstance(js, int):
-        file.write(append_value(prefix, repr(js)))
+        file.write(append_value(prefix, json.dumps(js)))
         file.write('\n')
     else:
         assert False, "Don't know what to do with a %r!" % type(js)
