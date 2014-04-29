@@ -29,19 +29,26 @@ turns into:
 import argparse
 import json
 import os
+import re
 import sys
-from pprint import pprint
 
 __author__  = 'Laurence Gonsalves <laurence@xenomachina.com>'
 
-def append_key(prefix, key):
-    # TODO use subscript notaiton for unsafe keys
-    if prefix:
-        return prefix + '.' + key
-    else:
-        return key
+# This is intentionally very conservative. There are many valid JavaScript
+# identifiers that are not matched by this, but that's okay -- we'll just use
+# subscript notation for them.
+VALID_IDENTIFIER_RE = re.compile(r'^[$A-Za-z_][$A-Za-z_0-9]*$')
 
-def append_index(prefix, index):
+def append_key(prefix, key):
+    if VALID_IDENTIFIER_RE.match(key):
+        if prefix:
+            return prefix + '.' + key
+        else:
+            return key
+    else:
+        return append_subscript(prefix, key)
+
+def append_subscript(prefix, index):
     return prefix + '[' + json.dumps(index) + ']'
 
 def append_value(prefix, value):
@@ -56,7 +63,7 @@ def flatten(js, file, prefix=''):
             flatten(value, file, append_key(prefix, key))
     elif isinstance(js, list):
         for index, value in enumerate(js):
-            flatten(value, file, append_index(prefix, index))
+            flatten(value, file, append_subscript(prefix, index))
     elif isinstance(js, str) or isinstance(js, int):
         file.write(append_value(prefix, json.dumps(js)))
         file.write('\n')
