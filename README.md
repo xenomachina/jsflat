@@ -11,24 +11,28 @@ qualified name".
 
 For example:
 
-    {
-        "baz" : [
-            "quux",
-            "snoo"
-            ],
-        "foo" : "bar",
-        "zarf" : {
-            "albatross" : 42,
-            "giant panda" : 2048,
-            "zebra" : 1500
-            }
-    }
+``` javascript
+{
+    "baz" : [
+        "quux",
+        "snoo"
+        ],
+    "foo" : "bar",
+    "zarf" : {
+        "albatross" : 42,
+        "giant panda" : 2048,
+        "zebra" : 1500
+        }
+}
+```
 
 turns into:
 
-    baz[0] = "quux"
-    baz[1] = "snoo"
-    foo = "bar"
-    zarf.albatross = 42
-    zarf["giant panda"] = 2048
-    zarf.zebra = 1500
+``` javascript
+baz[0] = "quux"
+baz[1] = "snoo"
+foo = "bar"
+zarf.albatross = 42
+zarf["giant panda"] = 2048
+zarf.zebra = 1500
+```
