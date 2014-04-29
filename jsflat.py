@@ -10,19 +10,27 @@ like grep.
 
 For example:
 
-  {
-    "foo" : "bar",
-    "baz" : [
-      "quux",
-      "zarf"
-      ]
-  }
+    {
+        "baz" : [
+            "quux",
+            "snoo"
+            ],
+        "foo" : "bar",
+        "zarf" : {
+            "albatross" : 42,
+            "giant panda" : 2048,
+            "zebra" : 1500
+            }
+    }
 
 turns into:
 
-  foo = "bar"
-  baz[0] = "quux"
-  baz[1] = "zarf"
+    baz[0] = "quux"
+    baz[1] = "snoo"
+    foo = "bar"
+    zarf.albatross = 42
+    zarf["giant panda"] = 2048
+    zarf.zebra = 1500
 
 """
 
@@ -77,7 +85,7 @@ class UserError(Exception):
 def ParseArgs():
     parser = argparse.ArgumentParser(description=__doc__.strip().split('\n')[0])
     parser.add_argument('input',
-            help="Input file name.",
+            help="Input file name. If not provided, input is read from stdin.",
             nargs='?')
     args = parser.parse_args()
     return args
