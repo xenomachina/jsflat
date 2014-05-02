@@ -46,36 +46,34 @@ __author__  = 'Laurence Gonsalves <laurence@xenomachina.com>'
 # subscript notation for them.
 VALID_IDENTIFIER_RE = re.compile(r'^[$A-Za-z_][$A-Za-z_0-9]*$')
 
-def append_key(prefix, key):
-    if VALID_IDENTIFIER_RE.match(key):
-        if prefix:
-            return prefix + '.' + key
+class Flattener:
+    def __init__(self, repr=repr):
+        self.__repr = repr
+
+    def _add_key(self, prefix, key):
+        if VALID_IDENTIFIER_RE.match(key):
+            if prefix:
+                return prefix + '.' + key
+            else:
+                return key
         else:
-            return key
-    else:
-        return append_subscript(prefix, key)
+            return self._add_subscript(prefix, key)
 
-def append_subscript(prefix, index):
-    return prefix + '[' + json.dumps(index) + ']'
+    def _add_subscript(self, prefix, index):
+        return prefix + '[' + self.__repr(index) + ']'
 
-def append_value(prefix, value):
-    if prefix:
-        return prefix + ' = ' + value
-    else:
-        return value
-
-def flatten(js, file, prefix=''):
-    if isinstance(js, dict):
-        for key, value in sorted(js.items()):
-            flatten(value, file, append_key(prefix, key))
-    elif isinstance(js, list):
-        for index, value in enumerate(js):
-            flatten(value, file, append_subscript(prefix, index))
-    elif isinstance(js, str) or isinstance(js, int):
-        file.write(append_value(prefix, json.dumps(js)))
-        file.write('\n')
-    else:
-        assert False, "Don't know what to do with a %r!" % type(js)
+    def flatten(self, x, prefix=''):
+        if isinstance(x, dict):
+            for key, value in sorted(x.items()):
+                for item in self.flatten(value, self._add_key(prefix, key)):
+                    yield item
+        elif isinstance(x, list):
+            for index, value in enumerate(x):
+                for item in self.flatten(value,
+                        self._add_subscript(prefix, index)):
+                    yield item
+        else:
+            yield (prefix, x)
 
 class UserError(Exception):
   def __init__(self, message):
@@ -96,7 +94,15 @@ def main(args):
             js = json.load(f)
     else:
         js = json.load(sys.stdin)
-    flatten(js, file=sys.stdout)
+    for name, value in Flattener(json.dumps).flatten(js):
+        if isinstance(value, str) or isinstance(value, int):
+            value = json.dumps(value)
+        else:
+            assert False, "Don't know what to do with a %r!" % type(value)
+        if name:
+            print(name + ' = ' + value)
+        else:
+            print(value)
 
 if __name__ == '__main__':
     error = None
