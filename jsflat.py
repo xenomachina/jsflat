@@ -32,6 +32,16 @@ turns into:
     zarf["giant panda"] = 2048
     zarf.zebra = 1500
 
+You can also add prefixes which will be converted just like JavaScript
+attribute names and pre-pended onto each line. For example:
+
+    jsflat.py --prefix hello --prefix ":-)" --prefix world < input
+
+Will generate lines like:
+
+    hello[":-)"].world.baz[0] = "quux"
+    hello[":-)"].world.baz[1] = "snoo"
+    hello[":-)"].world.foo = "bar"
 """
 
 import argparse
@@ -51,6 +61,8 @@ def create_parser():
     description, epilog = __doc__.strip().split('\n', 1)
     parser = argparse.ArgumentParser(description=description, epilog=epilog,
             formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--prefix', default=[], action='append',
+            help="Prefix for all output lines.")
     parser.add_argument('input',
             help="Input file name. If not provided, input is read from stdin.",
             nargs='?')
@@ -62,6 +74,8 @@ def main(args):
             js = json.load(f)
     else:
         js = json.load(sys.stdin)
+    while args.prefix:
+        js = {args.prefix.pop(): js}
     for name, value in flatten.Flattener(json.dumps).flatten(js):
         if isinstance(value, str) or isinstance(value, int):
             value = json.dumps(value)
